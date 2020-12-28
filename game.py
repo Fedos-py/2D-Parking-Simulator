@@ -64,6 +64,7 @@ class Game:
             car.steering = max(-car.max_steering, min(car.steering, car.max_steering))
 
             # Logic
+
             car.update(dt)
 
             # Drawing
