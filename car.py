@@ -1,11 +1,12 @@
-from math import sin, radians, degrees, copysign
+from math import sin, radians, degrees, copysign, cos
 from pygame.math import Vector2
 
 
 class Car:
     def __init__(self, x, y, angle=0.0, length=4, max_steering=30, max_acceleration=5.0):
-        self.position = Vector2(x, y)
-        self.velocity = Vector2(0.0, 0.0)
+        self.position_x = x
+        self.position_y = y
+        self.velocity = 0.0
         self.angle = angle
         self.length = length
         self.max_acceleration = max_acceleration
@@ -18,14 +19,18 @@ class Car:
         self.steering = 0.0
 
     def update(self, dt):
-        self.velocity += (self.acceleration * dt, 0)
-        self.velocity.x = max(-self.max_velocity, min(self.velocity.x, self.max_velocity))
+        self.velocity += self.acceleration * dt
+        self.velocity = max(-self.max_velocity, min(self.velocity, self.max_velocity))
 
         if self.steering:
             turning_radius = self.length / sin(radians(self.steering))
-            angular_velocity = self.velocity.x / turning_radius
+            angular_velocity = self.velocity / turning_radius
         else:
             angular_velocity = 0
 
-        self.position += self.velocity.rotate(-self.angle) * dt
+        l = self.velocity * dt * 32
+        sin_a = sin(radians(-self.angle))
+        cos_a = cos(radians(-self.angle))
+        self.position_x += cos_a * l
+        self.position_y += sin_a * l
         self.angle += degrees(angular_velocity) * dt

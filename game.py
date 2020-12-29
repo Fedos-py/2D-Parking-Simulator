@@ -14,12 +14,15 @@ class Game:
         self.ticks = 60
         self.exit = False
 
+
     def run(self):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         image_path = os.path.join(current_dir + '/Images/Cars/', "car.png")
         car_image = pygame.image.load(image_path)
-        car = Car(0, 0)
-        ppu = 32
+        car = Car(250, 250)
+        ppu = 1
+        i = 0
+        self.plus_nos = 0
 
         while not self.exit:
             dt = self.clock.get_time() / 1000
@@ -33,26 +36,31 @@ class Game:
             pressed = pygame.key.get_pressed()
 
             if pressed[pygame.K_UP]:
-                if car.velocity.x < 0:
-                    car.acceleration = car.brake_deceleration
+                if car.position_y > 0 - self.plus_nos and car.position_y < 720.00 + self.plus_nos and car.position_x > 0 - self.plus_nos and car.position_x < 1280.0 + self.plus_nos:
+                    if car.velocity < 0:
+                        car.acceleration = car.brake_deceleration
+                    else:
+                        car.acceleration += 1 * dt
                 else:
-                    car.acceleration += 1 * dt
+                    car.velocity =  0
             elif pressed[pygame.K_DOWN]:
-                if car.velocity.x > 0:
+                if car.velocity > 0:
                     car.acceleration = -car.brake_deceleration
                 else:
                     car.acceleration -= 1 * dt
             elif pressed[pygame.K_SPACE]:
-                if abs(car.velocity.x) > dt * car.brake_deceleration:
-                    car.acceleration = -copysign(car.brake_deceleration, car.velocity.x)
+                if abs(car.velocity) > dt * car.brake_deceleration:
+                    car.acceleration = -copysign(car.brake_deceleration, car.velocity)
                 else:
-                    car.acceleration = -car.velocity.x / dt
+                    car.acceleration = -car.velocity / dt
             else:
-                if abs(car.velocity.x) > dt * car.free_deceleration:
-                    car.acceleration = -copysign(car.free_deceleration, car.velocity.x)
+                if abs(car.velocity) > dt * car.free_deceleration:
+                    car.acceleration = -copysign(car.free_deceleration, car.velocity)
+                elif car.position_y > 50.0:
+                    car.velocity = 0
                 else:
                     if dt != 0:
-                        car.acceleration = -car.velocity.x / dt
+                        car.acceleration = -car.velocity / dt
             car.acceleration = max(-car.max_acceleration, min(car.acceleration, car.max_acceleration))
 
             if pressed[pygame.K_RIGHT]:
@@ -71,8 +79,17 @@ class Game:
             self.screen.fill((0, 0, 0))
             rotated = pygame.transform.rotate(car_image, car.angle)
             rect = rotated.get_rect()
-            self.screen.blit(rotated, car.position * ppu - (rect.width / 2, rect.height / 2))
+            print(rect)
+            pygame.draw.rect(self.screen, pygame.Color('white'), rect, 5)
+            print(car.position_x, car.position_y)
+            self.screen.blit(rotated, (car.position_x * ppu - rect.width / 2, car.position_y * ppu - rect.height / 2))
+            #pygame.draw.rect(self.screen, pygame.Color('white'), (15, 15, 100, 100), 20)
             pygame.display.flip()
+            print(i)
+            i += 1
+            if i == 0:
+                self.plus_nos = rect[2] // 2
+
 
             self.clock.tick(self.ticks)
         pygame.quit()
