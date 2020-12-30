@@ -65,35 +65,36 @@ class Game:
             elif pressed[pygame.K_DOWN]:
                 print(rect)
                 if rect.x > 0 and rect.y > 0:
+                    print(1)
                     if car.velocity < 0:
                         car.acceleration = -car.brake_deceleration
                     else:
                         car.acceleration -= 1 * dt
                 else:
+                    print(2)
                     car.velocity = 0
                     car.position_x += 5
                     car.position_y += 5
                 if rect.x + rect.w < TRAINING_AREA_W and rect.y + rect.h < TRAINING_AREA_H:
+                    print(3)
                     if car.velocity < 0:
                         car.acceleration = -car.brake_deceleration
                     else:
+                        print(123)
                         car.acceleration -= 1 * dt
                 else:
+                    print(4)
                     car.velocity = 0
                     car.position_x -= 5
                     car.position_y -= 5
-            elif pressed[pygame.K_SPACE]:
-                if abs(car.velocity) > dt * car.brake_deceleration:
+            elif pressed[pygame.K_SPACE]: # тормозим
+                if abs(car.velocity) > dt * car.brake_deceleration: # не можем затормозить за 1 кадр
                     car.acceleration = -copysign(car.brake_deceleration, car.velocity)
-                else:
+                else: # можем затормозить за 1 кадр
                     car.acceleration = -car.velocity / dt
-            elif pressed[pygame.K_s]:
-                car = Car(250, 250)
-            else:
+            else: # ни одна клавиша не нажата
                 if abs(car.velocity) > dt * car.free_deceleration:
                     car.acceleration = -copysign(car.free_deceleration, car.velocity)
-                elif car.position_y > 50:
-                    car.velocity = 0
                 else:
                     if dt != 0:
                         car.acceleration = -car.velocity / dt
@@ -117,11 +118,13 @@ class Game:
                 car.steering = 0
             car.steering = max(-car.max_steering, min(car.steering, car.max_steering))
 
+
+
             # Logic
 
             car.update(dt)
 
-            print(rect)
+            #print(rect)
             if rect.x > 0 and rect.y > 0:
                 if car.velocity < 0:
                     car.acceleration = car.brake_deceleration
@@ -140,7 +143,7 @@ class Game:
                 car.velocity = 0
                 car.position_x -= 5
                 car.position_y -= 5
-            print(rect.x)
+            #print(rect.x)
             if rect.x + 5 + rect.w // 2 >= TRAINING_AREA_W or rect.y + 5 >= TRAINING_AREA_H:
                 car.position_x = 250
                 car.position_y = 250
@@ -148,7 +151,7 @@ class Game:
             self.screen.fill((0, 0, 0))
             if self.mod_on:
                 font = pygame.font.Font('13888.otf', 100)
-                text = font.render('mod on', True, pygame.Color('red'))
+                text = font.render('speed: {}'.format(round(car.velocity, 2)), True, pygame.Color('red'))
                 self.screen.blit(text, (10, 10))
             pygame.draw.rect(self.screen, pygame.Color('red'), rect, 3)
             #print(car.position_x, car.position_y)

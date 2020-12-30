@@ -1,8 +1,9 @@
 from math import sin, radians, degrees, copysign, cos
 from pygame.math import Vector2
+import pygame
 
 
-class Car:
+class Car(pygame.sprite.Sprite):
     def __init__(self, x, y, angle=0.0, length=4, max_steering=30, max_acceleration=5.0):
         self.position_x = x
         self.position_y = y
@@ -19,6 +20,7 @@ class Car:
         self.steering = 0.0
 
     def update(self, dt):
+        print('vel: {}, acc: {}'.format(self.velocity, self.acceleration))
         self.velocity += self.acceleration * dt
         self.velocity = max(-self.max_velocity, min(self.velocity, self.max_velocity))
 
@@ -33,4 +35,4 @@ class Car:
         cos_a = cos(radians(-self.angle))
         self.position_x += cos_a * l
         self.position_y += sin_a * l
-        self.angle += degrees(angular_velocity) * dt
+        self.angle += degrees (angular_velocity) * dt
