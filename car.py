@@ -4,8 +4,11 @@ import pygame
 import os
 
 
+TRAINING_AREA_W = 1280
+TRAINING_AREA_H = 720
+
 class Car(pygame.sprite.Sprite):
-    def __init__(self, x, y, angle=0.0, length=4, max_steering=30, max_acceleration=5.0, *group):
+    def __init__(self, x, y, angle=0.0, length=4, max_steering=30, max_acceleration=50.0, *group):
         super().__init__(*group)
         self.position_x = x
         self.position_y = y
@@ -52,3 +55,61 @@ class Car(pygame.sprite.Sprite):
         self.rect_image = self.image.get_rect(center=(self.position_x, self.position_y))
         self.rect = pygame.Rect(self.position_x - self.rect_image.w // 2 , self.position_y - self.rect_image.h // 2, self.rect_image.w, self.rect_image.h)
 
+    def ctrl(self, pressed, dt):
+        if pressed[pygame.K_UP]:
+            if self.rect.x > 0 and self.rect.y > 0:
+                if self.velocity < 0:
+                    self.acceleration = self.brake_deceleration
+                else:
+                    self.acceleration += 1 * dt
+            else:
+                self.velocity = 0
+                self.position_x += 5
+                self.position_y += 5
+            if self.rect.x + self.rect.w < TRAINING_AREA_W and self.rect.y + self.rect.h < TRAINING_AREA_H:
+                if self.velocity < 0:
+                    self.acceleration = self.brake_deceleration
+                else:
+                    self.acceleration += 1 * dt
+            else:
+                self.velocity = 0
+                self.position_x -= 5
+                self.position_y -= 5
+        elif pressed[pygame.K_DOWN]:
+            if self.rect.x > 0 and self.rect.y > 0:
+                if self.velocity < 0:
+                    self.acceleration = -self.brake_deceleration
+                else:
+                    self.acceleration -= 1 * dt
+            else:
+                self.velocity = 0
+                self.position_x += 5
+                self.position_y += 5
+            if self.rect.x + self.rect.w < TRAINING_AREA_W and self.rect.y + self.rect.h < TRAINING_AREA_H:
+                if self.velocity < 0:
+                    self.acceleration = -self.brake_deceleration
+                else:
+                    self.acceleration -= 1 * dt
+            else:
+                self.velocity = 0
+                self.position_x -= 5
+                self.position_y -= 5
+        elif pressed[pygame.K_SPACE]:  # тормозим
+            if abs(self.velocity) > dt * self.brake_deceleration:  # не можем затормозить за 1 кадр
+                self.acceleration = -copysign(self.brake_deceleration, self.velocity)
+            else:  # можем затормозить за 1 кадр
+                self.acceleration = -self.velocity / dt
+        else:  # ни одна клавиша не нажата
+            if abs(self.velocity) > dt * self.free_deceleration:
+                self.acceleration = -copysign(self.free_deceleration, self.velocity)
+            else:
+                if dt != 0:
+                    self.acceleration = -self.velocity / dt
+        if pressed[pygame.K_RIGHT]:
+            self.steering -= 30 * dt
+        elif pressed[pygame.K_LEFT]:
+            self.steering += 30 * dt
+        else:
+            self.steering = 0
+        self.steering = max(-self.max_steering, min(self.steering, self.max_steering))
+        self.acceleration = max(-self.max_acceleration, min(self.acceleration, self.max_acceleration))
