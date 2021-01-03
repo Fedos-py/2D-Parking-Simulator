@@ -1,5 +1,6 @@
-from game import *
 import os
+from game import *
+from obstacle import *
 
 
 if __name__ == '__main__':
