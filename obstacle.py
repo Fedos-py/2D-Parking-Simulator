@@ -32,3 +32,12 @@ class Area(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.area_mask = pygame.mask.from_surface(surf)
         self.pos = (0, 0)
+
+
+class Margine(pygame.sprite.Sprite):
+    def __init__(self, image, x, y, *group):
+        super().__init__(*group)
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y

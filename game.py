@@ -18,12 +18,29 @@ class Game:
 
 
     def run(self):
-        car = Car(250, 250)
+        car = Car(550, 250)
         conus = Obstacle('conus2.png', 400, 250)
+        conus2 = Obstacle('conus2.png', 650, 250)
         ppu = 1
         i = 0
         self.plus_nos = 0
         self.mod_on = False
+
+        margines = pygame.sprite.Group()
+
+        vertical = pygame.Surface((50, TRAINING_AREA_H))
+        vertical.fill(pygame.Color('orange'))
+        horizontal = pygame.Surface((TRAINING_AREA_W, 50))
+        horizontal.fill(pygame.Color('orange'))
+        left_marg = Margine(vertical, 0, 0)
+        margines.add(left_marg)
+        right_marg = Margine(vertical, TRAINING_AREA_W - 50, 0)
+        margines.add(right_marg)
+        verh_marg = Margine(horizontal, 0, 0)
+        margines.add(verh_marg)
+        verh_marg = Margine(horizontal, 0, TRAINING_AREA_H - 50)
+        margines.add(verh_marg)
+
 
         area_distance = 50
         '''surf = pygame.Surface((TRAINING_AREA_W, TRAINING_AREA_H))
@@ -31,10 +48,25 @@ class Game:
         surf.set_colorkey(pygame.Color('black'))
         area_mask = pygame.mask.from_surface(surf)
         '''
+
         training_area = Area(area_distance, area_distance, TRAINING_AREA_W - area_distance * 2, TRAINING_AREA_H - area_distance * 2)
+        lev_vert = pygame.Rect(50, 50, 5, 620)
+        prav_vert = pygame.Rect(1230, 50, 5, 620)
+        verh_gor = pygame.Rect(50, 50, 1180, 5)
+        niz_gor = pygame.Rect(50, 670, 1185, 5)
         obstacles = pygame.sprite.Group()
+        obstacles2 = list()
         obstacles.add(conus)
-        #obstacles.add(area_mask)
+        obstacles.add(conus2)
+        obstacles.add(margines)
+        '''
+        obstacles2.append(conus.rect)
+        obstacles2.append(conus2.rect)
+        obstacles2.append(lev_vert)
+        obstacles2.append(prav_vert)
+        obstacles2.append(verh_gor)
+        obstacles2.append(niz_gor)
+        #obstacles.add(area_mask)'''
 
 
 
@@ -53,26 +85,27 @@ class Game:
 
             # User input
             pressed = pygame.key.get_pressed()
-
-            self.col = pygame.Rect.colliderect(car.rect, conus.rect)
-            print(self.col, car.rect, conus.rect)
-            if self.col == 1:
-                print('crash')
-                car.velocity = 0
-                car.position_x -= 5
-                car.position_y -= 5
+            '''
+            for elem in obstacles2:
+                self.col = pygame.Rect.colliderect(car.rect, elem)
+                print(self.col, car.rect, elem)
+                if self.col == 1:
+                    print('crash')
+                    car.velocity = 0
+                    car.position_x -= 5
+                    car.position_y -= 5
 
             #print(pygame.sprite.collide_mask(car, conus))
             '''
+
             for elem in obstacles:
-                print(pygame.sprite.collide_mask(car, elem))
-            offset = (int(conus.pos[1] - car.position_y), int(conus.pos[0] - car.position_x))
-            if car.mask.overlap_area(conus.mask, offset) > 0:
-                car.velocity = 0
-                car.position_x -= 5
-                car.position_y -= 5
-                print('crash')
-            '''
+                self.col = pygame.Rect.colliderect(car.rect, elem)
+                print(self.col, car.rect, elem)
+                if self.col == 1:
+                    print('crash')
+                    car.velocity = 0
+                    car.position_x -= 1
+                    car.position_y -= 1
 
 
 
@@ -185,7 +218,7 @@ class Game:
                 text = font.render('speed: {}'.format(round(car.velocity, 2)), True, pygame.Color('red'))
                 self.screen.blit(text, (10, 10))
             pygame.draw.rect(self.screen, pygame.Color('red'), car.rect, 3)
-            pygame.draw.rect(self.screen, pygame.Color('pink'), (50, 50, 1180, 620), 5)
+            #pygame.draw.rect(self.screen, pygame.Color('pink'), (50, 50, 1180, 620), 5)
             #pygame.draw.rect(self.screen, pygame.Color('pink'), area, 5)
             #print(car.position_x, car.position_y)
 #            self.screen.blit(training_area, (0, 0))
@@ -193,8 +226,17 @@ class Game:
 #            all_sprites.draw(screen)
             obstacles.draw(self.screen)
             self.screen.blit(car.image, (car.position_x - car.rect.w / 2, car.position_y - car.rect.h / 2))
+            #pygame.draw.line(self.screen, pygame.Color('pink'),[50, 50], [50, 680], 3) # левая вертикаль
+            #pygame.draw.rect(self.screen, pygame.Color('pink'), lev_vert)
+            #pygame.draw.line(self.screen, pygame.Color('pink'), [1230, 50], [1230, 680], 3)  # правая вертикаль
+            #pygame.draw.rect(self.screen, pygame.Color('pink'), prav_vert)
+            #pygame.draw.line(self.screen, pygame.Color('pink'), [50, 50], [1230, 50], 3)  # верхняя горизонталь
+            #pygame.draw.rect(self.screen, pygame.Color('pink'), verh_gor)
+            #pygame.draw.line(self.screen, pygame.Color('pink'), [50, 680], [1230, 680], 3)  # нижняя горизонталь
+            #pygame.draw.rect(self.screen, pygame.Color('pink'), niz_gor)
             #pygame.draw.rect(self.screen, pygame.Color('white'), (15, 15, 100, 100), 20)
-            pygame.draw.rect(self.screen, pygame.Color('white'), conus.rect, 4)
+            #pygame.draw.rect(self.screen, pygame.Color('white'), conus.rect, 4)
+            #self.screen.blit(vertical, (0, 0))
             pygame.display.flip()
             #print(i)
             i += 1
