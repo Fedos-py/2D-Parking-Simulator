@@ -7,6 +7,8 @@ from obstacle import *
 TRAINING_AREA_W = 1280
 TRAINING_AREA_H = 720
 
+SEGMENT = 50
+
 class Game:
     def __init__(self):
         pygame.init()
@@ -28,27 +30,19 @@ class Game:
 
         margines = pygame.sprite.Group()
 
-        vertical = pygame.Surface((50, TRAINING_AREA_H))
+        vertical = pygame.Surface((SEGMENT, TRAINING_AREA_H))
         vertical.fill(pygame.Color('orange'))
-        horizontal = pygame.Surface((TRAINING_AREA_W, 50))
+        horizontal = pygame.Surface((TRAINING_AREA_W, SEGMENT))
         horizontal.fill(pygame.Color('orange'))
         left_marg = Margine(vertical, 0, 0)
         margines.add(left_marg)
-        right_marg = Margine(vertical, TRAINING_AREA_W - 50, 0)
+        right_marg = Margine(vertical, TRAINING_AREA_W - SEGMENT, 0)
         margines.add(right_marg)
         verh_marg = Margine(horizontal, 0, 0)
         margines.add(verh_marg)
-        verh_marg = Margine(horizontal, 0, TRAINING_AREA_H - 50)
+        verh_marg = Margine(horizontal, 0, TRAINING_AREA_H - SEGMENT)
         margines.add(verh_marg)
-
-
-        area_distance = 50
-
-        training_area = Area(area_distance, area_distance, TRAINING_AREA_W - area_distance * 2, TRAINING_AREA_H - area_distance * 2)
-        lev_vert = pygame.Rect(50, 50, 5, 620)
-        prav_vert = pygame.Rect(1230, 50, 5, 620)
-        verh_gor = pygame.Rect(50, 50, 1180, 5)
-        niz_gor = pygame.Rect(50, 670, 1185, 5)
+        area_distance = SEGMENT
         obstacles = pygame.sprite.Group()
         obstacles2 = list()
         obstacles.add(conus)
@@ -70,13 +64,13 @@ class Game:
             pressed = pygame.key.get_pressed()
 
             for elem in obstacles: #обработка столкновений машинки с препятствиями
-                self.col = pygame.Rect.colliderect(car.rect, elem)
+                self.col = pygame.sprite.collide_mask(car, elem)
                 if self.col:
                     print('crash')
                     v = car.velocity
                     car.velocity = copysign(10, -v)
                     i=0
-                    while pygame.Rect.colliderect(car.rect, elem):
+                    while pygame.sprite.collide_mask(car, elem):
                         i+=1
                         print('crash ', i)
                         car.update(0.001)
@@ -97,36 +91,13 @@ class Game:
 
 
             car.update(dt)
-            conus.update()
-            if car.rect.x > 0 and car.rect.y > 0:
-                if car.velocity < 0:
-                    car.acceleration = car.brake_deceleration
-                else:
-                    car.acceleration += 1 * dt
-            else:
-                car.velocity = 0
-                car.position_x += 5
-                car.position_y += 5
-            if car.rect.x + car.rect.w < TRAINING_AREA_W and car.rect.y + car.rect.h < TRAINING_AREA_H:
-                if car.velocity < 0:
-                    car.acceleration = car.brake_deceleration
-                else:
-                    car.acceleration += 1 * dt
-            else:
-                car.velocity = 0
-                car.position_x -= 5
-                car.position_y -= 5
-            '''if car.rect.x + 5 + car.rect.w // 2 >= TRAINING_AREA_W or car.rect.y + 5 >= TRAINING_AREA_H:
-                car.position_x = 250
-                car.position_y = 250
-            '''
             # Drawing
             self.screen.fill((0, 0, 0))
             if self.mod_on:
                 font = pygame.font.Font('13888.otf', 100)
                 text = font.render('speed: {}'.format(round(car.velocity, 2)), True, pygame.Color('red'))
-                self.screen.blit(text, (10, 10))
-            pygame.draw.rect(self.screen, pygame.Color('red'), car.rect, 3)
+                self.screen.blit(text, (1, 10))
+            #pygame.draw.rect(self.screen, pygame.Color('red'), car.rect, 3)
             obstacles.draw(self.screen)
             self.screen.blit(car.image, (car.position_x - car.rect.w / 2, car.position_y - car.rect.h / 2))
             pygame.display.flip()
