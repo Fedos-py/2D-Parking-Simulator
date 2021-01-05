@@ -4,8 +4,9 @@ import os
 
 
 class Obstacle(pygame.sprite.Sprite):
-    def __init__(self, name, x, y, *group):
-        super().__init__(*group)
+    def __init__(self, name, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        #super().__init__(self)
         self.name = name
         current_dir = os.path.dirname(os.path.abspath(__file__))
         image_path = os.path.join(current_dir + '/Images/Obstacles/', self.name)
@@ -16,7 +17,7 @@ class Obstacle(pygame.sprite.Sprite):
         self.rect.y = y
         #self.pos = (x, y)
 
-        self.moveable = False
+        #self.moveable = False
         #pygame.draw.rect(self.screen, pygame.Color('white'), self.rect, 4)
         #print('загрузили конус')
 
@@ -42,8 +43,10 @@ class Area(pygame.sprite.Sprite):
 
 
 class Margine(pygame.sprite.Sprite):
-    def __init__(self, image, x, y, *group):
-        super().__init__(*group)
+    def __init__(self, image, x, y):
+        #super().__init__(*group)
+        pygame.sprite.Sprite.__init__(self)
+
         self.image = image
         self.rect = self.image.get_rect()
         self.rect.x = x
