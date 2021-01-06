@@ -25,8 +25,8 @@ class Game:
 
     def run(self):
         car = Car(550, 250)
-        conus = Obstacle('conus2.png', 400, 450)
-        conus2 = Obstacle('stone.png', 850, 450)
+        conus = Obstacle('conus2.png', 400, 450, 0)
+        conus2 = Obstacle('conus2.png', 850, 450, 180)
         ppu = 1
         i = 0
         r = False
@@ -52,7 +52,7 @@ class Game:
         #moveable_obstacles.add(margines)
 
         map_edit = MapEdit((50, 50, TRAINING_AREA_W - 50, TRAINING_AREA_H - 50))
-        map_edit.edit_ex(('conus2.png', 1310, 50), ('stone1.png', 1310, 150), ('arrow.png', 1500, 50))
+        map_edit.edit_ex(('conus2.png', 1310, 50, 0), ('stone1.png', 1310, 150, 0), ('arrow.png', 1500, 50, 0))
 
         while not self.exit:
             dt = self.clock.get_time() / 1000
@@ -92,7 +92,7 @@ class Game:
                 loaded_obstacles = map_edit.load_level()
                 for elem in moveable_obstacles:
                     elem.kill()
-                moveable_obstacles = loaded_obstacles
+                moveable_obstacles.add(loaded_obstacles)
                 obstacles.add(moveable_obstacles)
             elif pressed[pygame.K_DELETE]:
                 if map_edit.object_moving_mode:
@@ -102,7 +102,7 @@ class Game:
 
                 if map_edit.object_moving_mode and rot==False:
                     print('rotate')
-                    map_edit.moving_object.rotate(90)
+                    map_edit.moving_object.rotate(45)
                     rot=True
                 #else:
                     #r=False

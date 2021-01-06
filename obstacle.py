@@ -4,21 +4,25 @@ import os
 
 
 class Obstacle(pygame.sprite.Sprite):
-    def __init__(self, name, x, y):
+    def __init__(self, name, x, y, angle):
         pygame.sprite.Sprite.__init__(self)
         #super().__init__(self)
         self.name = name
         current_dir = os.path.dirname(os.path.abspath(__file__))
         image_path = os.path.join(current_dir + '/Images/Obstacles/', self.name)
-        self.image = pygame.image.load(image_path)
+        self.initial_image = pygame.image.load(image_path)
+        self.image = self.initial_image
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
+        self.angle = 0
+        self.rotate(angle)
         self.rect.x = x
         self.rect.y = y
-        #self.angle = 0
 
     def rotate(self, angle):
-        self.image = pygame.transform.rotate(self.image, angle)
+        self.angle += angle
+        #self.angle = self.angle % 360
+        self.image = pygame.transform.rotate(self.initial_image, self.angle)
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
 
