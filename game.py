@@ -104,6 +104,8 @@ class Game:
                     print('rotate')
                     map_edit.moving_object.rotate(45)
                     rot=True
+            elif pressed[pygame.K_c]:
+                car.change_car()
                 #else:
                     #r=False
 
@@ -138,8 +140,7 @@ class Game:
             else:
                 map_edit.ex_obstacles.draw(self.screen)
 
-
-
+            #pygame.draw.rect(self.screen, pygame.Color('red'), car.rect, 3)
 
             pygame.display.flip()
             self.clock.tick(self.ticks)

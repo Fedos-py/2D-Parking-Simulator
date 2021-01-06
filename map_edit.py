@@ -65,7 +65,7 @@ class MapEdit:
         for elem in obstacles:
             info.append([elem.name, elem.rect.x, elem.rect.y, elem.angle])
         print(info)
-        current_dir = filesave(title="Please select a file", initialdir=os.path.expanduser(u'~/Levels'),
+        current_dir = filesave(title="Please select a file", initialdir=f'{os.path.dirname(os.path.abspath(__file__))}/Levels' ,
                                   filetypes=[('Game levels', '*.csv'), ('All files', '*.*')])
         #filename = input("введите название файла для записи ")
         #print(f'записываем в файл {filename} значения {info}')
@@ -81,7 +81,7 @@ class MapEdit:
     def load_level(self):
         print('загружаем уровень')
         #filename = input('введите название файла с загружаемым уровнем ')
-        current_dir = fileopen(title="Please select a file", initialdir=os.path.expanduser(u'~/Levels'), filetypes=[('Game levels','*.csv'), ('All files', '*.*')])
+        current_dir = fileopen(title="Please select a file", initialdir=f'{os.path.dirname(os.path.abspath(__file__))}/Levels', filetypes=[('Game levels','*.csv'), ('All files', '*.*')])
         #current_dir = os.path.dirname(os.path.abspath(__file__))
         print(current_dir)
         obstacles = pygame.sprite.Group()

@@ -1,3 +1,4 @@
+from file_operations import *
 from math import sin, radians, degrees, copysign, cos
 from pygame.math import Vector2
 import pygame
@@ -30,7 +31,9 @@ class Car(pygame.sprite.Sprite):
         self.initial_car_image = pygame.image.load(image_path)
         self.image = self.initial_car_image
         self.rect = self.image.get_rect()
+        self.longer()
         self.mask = pygame.mask.from_surface(self.image)
+
 
     def update(self, dt):
         #print('vel: {}, acc: {}'.format(self.velocity, self.acceleration))
@@ -87,3 +90,19 @@ class Car(pygame.sprite.Sprite):
             self.steering = 0
         self.steering = max(-self.max_steering, min(self.steering, self.max_steering))
         self.acceleration = max(-self.max_acceleration, min(self.acceleration, self.max_acceleration))
+
+
+    def change_car(self):
+        current_dir = fileopen(title="Please select a file", initialdir=f'{os.path.dirname(os.path.abspath(__file__))}/Images/Cars',
+                               filetypes=[('Game levels', '*.png'), ('All files', '*.*')])
+        image_path = os.path.join(current_dir)
+        self.initial_car_image = pygame.image.load(image_path)
+        self.image = self.initial_car_image
+        self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def longer(self, k=1.8):
+        surf = pygame.Surface((self.rect.w * k, self.rect.h))
+        surf.blit(self.image, (self.rect.w * (k - 1), 0))
+        surf.set_colorkey(pygame.Color('Black'))
+        self.initial_car_image = surf
