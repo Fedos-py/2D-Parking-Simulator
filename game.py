@@ -29,6 +29,7 @@ class Game:
         conus2 = Obstacle('stone.png', 850, 450)
         ppu = 1
         i = 0
+        r = False
 
         margines = pygame.sprite.Group()
         vertical = pygame.Surface((SEGMENT, TRAINING_AREA_H))
@@ -59,6 +60,12 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.exit = True
+                if event.type == pygame.KEYDOWN:
+                    down = True
+                if event.type == pygame.KEYUP:
+                    up = False
+                    rot = False
+
             # User input
             pressed = pygame.key.get_pressed()
             for elem in obstacles: #обработка столкновений машинки с препятствиями
@@ -79,10 +86,28 @@ class Game:
                 self.show_car_and_velocity = True
             elif pressed[pygame.K_EQUALS]:
                 self.show_car_and_velocity = False
+            elif pressed[pygame.K_s]:
+                map_edit.save_level(moveable_obstacles)
+            elif pressed[pygame.K_l]:
+                loaded_obstacles = map_edit.load_level()
+                for elem in moveable_obstacles:
+                    elem.kill()
+                moveable_obstacles = loaded_obstacles
+                obstacles.add(moveable_obstacles)
             elif pressed[pygame.K_DELETE]:
                 if map_edit.object_moving_mode:
                     map_edit.object_moving_mode = False
                     map_edit.moving_object.kill()
+            elif pressed[pygame.K_INSERT]:
+
+                if map_edit.object_moving_mode and rot==False:
+                    print('rotate')
+                    map_edit.moving_object.rotate(90)
+                    rot=True
+                #else:
+                    #r=False
+
+
 
             car.ctrl(pressed, dt)
 
@@ -104,7 +129,7 @@ class Game:
             map_edit.drag(pos, moveable_obstacles)
 
             obstacles.draw(self.screen)
-            print('game', len(moveable_obstacles), len(obstacles), len(map_edit.ex_obstacles))
+            # print('game', len(moveable_obstacles), len(obstacles), len(map_edit.ex_obstacles))
 
             if self.show_car_and_velocity:
                 text = self.font.render('speed {}'.format(round(car.velocity, 2)), True, pygame.Color('red'))

@@ -15,11 +15,12 @@ class Obstacle(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-        #self.pos = (x, y)
+        #self.angle = 0
 
-        #self.moveable = False
-        #pygame.draw.rect(self.screen, pygame.Color('white'), self.rect, 4)
-        #print('загрузили конус')
+    def rotate(self, angle):
+        self.image = pygame.transform.rotate(self.image, angle)
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect = self.image.get_rect()
 
     def set_pos(self, pos):
         self.rect.x = pos[0]
