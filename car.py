@@ -101,7 +101,7 @@ class Car(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.mask = pygame.mask.from_surface(self.image)
 
-    def longer(self, k=1.8):
+    def longer(self, k=2):
         surf = pygame.Surface((self.rect.w * k, self.rect.h))
         surf.blit(self.image, (self.rect.w * (k - 1), 0))
         surf.set_colorkey(pygame.Color('Black'))

@@ -22,7 +22,6 @@ class Game:
         self.font = pygame.font.Font('13888.otf', 45)
         self.show_car_and_velocity = True
 
-
     def run(self):
         car = Car(550, 250)
         conus = Obstacle('conus2.png', 400, 450, 0)
@@ -140,7 +139,7 @@ class Game:
             else:
                 map_edit.ex_obstacles.draw(self.screen)
 
-            #pygame.draw.rect(self.screen, pygame.Color('red'), car.rect, 3)
+            pygame.draw.rect(self.screen, pygame.Color('red'), car.rect, 3)
 
             pygame.display.flip()
             self.clock.tick(self.ticks)
