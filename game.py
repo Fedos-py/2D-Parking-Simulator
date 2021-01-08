@@ -24,8 +24,10 @@ class Game:
 
     def run(self):
         car = Car(550, 250)
-        conus = Obstacle('conus2.png', 400, 450, 0)
-        conus2 = Obstacle('conus2.png', 850, 450, 180)
+        #conus = Obstacle('conus2.png', 400, 450, 0)
+        #conus2 = Obstacle('conus2.png', 850, 450, 180)
+        start_zone = Obstacle('start_rect_2.png', 100, 100, 0)
+        finish_zone = Obstacle('finish_rect_2.png', 900, 100, 0)
         ppu = 1
         i = 0
         r = False
@@ -45,9 +47,11 @@ class Game:
         margines.add(bott_marg)
         obstacles = pygame.sprite.Group()
         moveable_obstacles = pygame.sprite.Group()
-        moveable_obstacles.add(conus)
-        moveable_obstacles.add(conus2)
-        obstacles.add(margines, moveable_obstacles)
+        #moveable_obstacles.add(conus)
+        #moveable_obstacles.add(conus2)
+        moveable_obstacles.add(start_zone, finish_zone)
+        obstacles.add(margines)#, moveable_obstacles)
+        background_obstacles = pygame.sprite.Group()
         #moveable_obstacles.add(margines)
 
         map_edit = MapEdit((50, 50, TRAINING_AREA_W - 50, TRAINING_AREA_H - 50))
@@ -76,6 +80,8 @@ class Game:
                     i=0
                     while pygame.sprite.collide_mask(car, elem):
                         i+=1
+                        if i == 3:
+                            car.health -= 5
                         print('crash ', i)
                         car.update(0.001)
 
@@ -88,11 +94,11 @@ class Game:
             elif pressed[pygame.K_s]:
                 map_edit.save_level(moveable_obstacles)
             elif pressed[pygame.K_l]:
-                loaded_obstacles = map_edit.load_level()
+                loaded_obstacles, start_stop_obstacles = map_edit.load_level(car)
                 for elem in moveable_obstacles:
                     elem.kill()
-                moveable_obstacles.add(loaded_obstacles)
-                obstacles.add(moveable_obstacles)
+                moveable_obstacles.add(start_stop_obstacles)
+                obstacles.add(loaded_obstacles)
             elif pressed[pygame.K_DELETE]:
                 if map_edit.object_moving_mode:
                     map_edit.object_moving_mode = False
@@ -128,18 +134,20 @@ class Game:
                 map_edit.drag_copy(pos, moveable_obstacles)
                 obstacles.add(moveable_obstacles)
             map_edit.drag(pos, moveable_obstacles)
-
+            moveable_obstacles.draw(self.screen)
             obstacles.draw(self.screen)
             # print('game', len(moveable_obstacles), len(obstacles), len(map_edit.ex_obstacles))
 
             if self.show_car_and_velocity:
                 text = self.font.render('speed {}'.format(round(car.velocity, 2)), True, pygame.Color('red'))
                 self.screen.blit(text, (1285, 5))
+                text = self.font.render('health {}'.format(car.health), True, pygame.Color('red'))
+                self.screen.blit(text, (1285, 55))
                 self.screen.blit(car.image, (car.position_x - car.rect.w / 2, car.position_y - car.rect.h / 2))
             else:
                 map_edit.ex_obstacles.draw(self.screen)
 
-            pygame.draw.rect(self.screen, pygame.Color('red'), car.rect, 3)
+            #pygame.draw.rect(self.screen, pygame.Color('red'), car.rect, 3)
 
             pygame.display.flip()
             self.clock.tick(self.ticks)

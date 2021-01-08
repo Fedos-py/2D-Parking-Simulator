@@ -71,20 +71,28 @@ class MapEdit:
         #print(f'записываем в файл {filename} значения {info}')
         #current_dir = os.path.dirname(os.path.abspath(__file__))
         with open(current_dir, 'w') as csvfile:
-            fieldnames = ['filename', 'position_x', 'position_y', 'angle']
+            fieldnames = ['filename', 'position_x', 'position_y', 'angle', 'type']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=';')
             for elem in info:
-                writer.writerow({'filename': elem[0], 'position_x': elem[1], 'position_y': elem[2], 'angle': elem[3]})
+                print(elem[0])
+                if elem[0] != 'start_rect_2.png' and elem[0] != 'finish_rect_2.png':
+                    etype = 'simple'
+                elif elem[0] == 'start_rect_2.png':
+                    etype = 'start'
+                elif elem[0] == 'finish_rect_2.png':
+                    etype = 'finish'
+                writer.writerow({'filename': elem[0], 'position_x': elem[1], 'position_y': elem[2], 'angle': elem[3], 'type': etype})
 
 
 
-    def load_level(self):
+    def load_level(self, car):
         print('загружаем уровень')
         #filename = input('введите название файла с загружаемым уровнем ')
         current_dir = fileopen(title="Please select a file", initialdir=f'{os.path.dirname(os.path.abspath(__file__))}/Levels', filetypes=[('Game levels','*.csv'), ('All files', '*.*')])
         #current_dir = os.path.dirname(os.path.abspath(__file__))
         print(current_dir)
         obstacles = pygame.sprite.Group()
+        start_stop_obstacles = pygame.sprite.Group()
         #with open(f'{current_dir}/Levels/{filename}.csv', "r") as File:
         with open(current_dir, "r") as File:
             reader = csv.reader(File)
@@ -92,8 +100,15 @@ class MapEdit:
                 if row != []:
                     row = row[0].split(';')
                     print(row)
-                    obstacles.add(Obstacle(row[0], int(row[1]), int(row[2]), int(row[3])))
-        return obstacles
+                    if row[4] == 'start':
+                        print(int(row[1]))
+                        car.position_x = int(row[1]) + 5
+                        print(int(row[2]))
+                        car.position_y = int(row[2]) + 35
+                        start_stop_obstacles.add(Obstacle(row[0], int(row[1]), int(row[2]), int(row[3])))
+                    else:
+                        obstacles.add(Obstacle(row[0], int(row[1]), int(row[2]), int(row[3])))
+        return obstacles, start_stop_obstacles
 
     def add_ex(self):
         pass

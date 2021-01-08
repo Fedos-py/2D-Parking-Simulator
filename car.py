@@ -22,6 +22,9 @@ class Car(pygame.sprite.Sprite):
         self.max_velocity = 20
         self.brake_deceleration = 10
         self.free_deceleration = 2
+        self.health = 100
+        self.start_point = (0, 0)
+        self.finish_point = (0, 0)
 
         self.acceleration = 0.0
         self.steering = 0.0
@@ -31,6 +34,7 @@ class Car(pygame.sprite.Sprite):
         self.initial_car_image = pygame.image.load(image_path)
         self.image = self.initial_car_image
         self.rect = self.image.get_rect()
+        print(self.rect)
         self.longer()
         self.mask = pygame.mask.from_surface(self.image)
 
