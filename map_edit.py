@@ -85,10 +85,15 @@ class MapEdit:
 
 
 
-    def load_level(self, car):
+    def load_level(self, car, needed_lvl=None):
         print('загружаем уровень')
         #filename = input('введите название файла с загружаемым уровнем ')
-        current_dir = fileopen(title="Please select a file", initialdir=f'{os.path.dirname(os.path.abspath(__file__))}/Levels', filetypes=[('Game levels','*.csv'), ('All files', '*.*')])
+        if needed_lvl == None:
+            current_dir = fileopen(title="Please select a file",
+                                   initialdir=f'{os.path.dirname(os.path.abspath(__file__))}/Levels',
+                                   filetypes=[('Game levels', '*.csv'), ('All files', '*.*')])
+        else:
+            current_dir = f'{os.path.dirname(os.path.abspath(__file__))}/Levels/{needed_lvl}'
         #current_dir = os.path.dirname(os.path.abspath(__file__))
         print(current_dir)
         obstacles = pygame.sprite.Group()
@@ -97,7 +102,7 @@ class MapEdit:
         with open(current_dir, "r") as File:
             reader = csv.reader(File)
             for row in reader:
-                if row != []:
+                if row != [] and row != ['', '', '', '', ''] and row != "['', '', '', '', '']":
                     row = row[0].split(';')
                     print(row)
                     if row[4] == 'start':

@@ -1,5 +1,6 @@
 import pygame
 import os
+import sqlite3
 from car import *
 from obstacle import *
 from map_edit import *
@@ -19,15 +20,19 @@ class Game:
         self.clock = pygame.time.Clock()
         self.ticks = 60
         self.exit = False
-        self.font = pygame.font.Font('13888.otf', 45)
+        self.font = pygame.font.Font('13888.otf', 50)
+        self.small_font = pygame.font.Font('13888.otf', 30)
         self.show_car_and_velocity = True
+        self.notification_mode = False
+        self.notification_message = 'тут ваше уведомление'
+        self.finish_point = pygame.Rect(695, 125, 12, 12)
 
     def run(self):
         car = Car(550, 250)
         #conus = Obstacle('conus2.png', 400, 450, 0)
         #conus2 = Obstacle('conus2.png', 850, 450, 180)
-        start_zone = Obstacle('start_rect_2.png', 100, 100, 0)
-        finish_zone = Obstacle('finish_rect_2.png', 900, 100, 0)
+        #start_zone = Obstacle('start_rect_2.png', 100, 100, 0)
+        #finish_zone = Obstacle('finish_rect_2.png', 900, 100, 0)
         ppu = 1
         i = 0
         r = False
@@ -49,15 +54,26 @@ class Game:
         moveable_obstacles = pygame.sprite.Group()
         #moveable_obstacles.add(conus)
         #moveable_obstacles.add(conus2)
-        moveable_obstacles.add(start_zone, finish_zone)
+        #moveable_obstacles.add(start_zone, finish_zone)
         obstacles.add(margines)#, moveable_obstacles)
         background_obstacles = pygame.sprite.Group()
         #moveable_obstacles.add(margines)
 
+
         map_edit = MapEdit((50, 50, TRAINING_AREA_W - 50, TRAINING_AREA_H - 50))
         map_edit.edit_ex(('conus2.png', 1310, 50, 0), ('stone1.png', 1310, 150, 0), ('arrow.png', 1500, 50, 0))
+        rot = False
+
+        loaded_obstacles, start_stop_obstacles = map_edit.load_level(car, '2lvl.csv')
+        for elem in moveable_obstacles:
+            elem.kill()
+        moveable_obstacles.add(start_stop_obstacles)
+        obstacles.add(loaded_obstacles)
+        now_lvl = 1
+        ticks = 0
 
         while not self.exit:
+            ticks += 1
             dt = self.clock.get_time() / 1000
             # Event queue
             for event in pygame.event.get():
@@ -93,12 +109,37 @@ class Game:
                 self.show_car_and_velocity = False
             elif pressed[pygame.K_s]:
                 map_edit.save_level(moveable_obstacles)
+            elif pressed[pygame.K_f]:
+                print(ticks)
+                if car.rect.colliderect(self.finish_point) == 1:
+                    self.notification()
             elif pressed[pygame.K_l]:
                 loaded_obstacles, start_stop_obstacles = map_edit.load_level(car)
                 for elem in moveable_obstacles:
                     elem.kill()
                 moveable_obstacles.add(start_stop_obstacles)
                 obstacles.add(loaded_obstacles)
+            elif pressed[pygame.K_n]:
+                self.notification()
+            elif pressed[pygame.K_RETURN]:
+                if self.notification_mode:
+                    self.notification_off()
+                    if ticks > 10:
+                        print('закончили уровень')
+                        con = sqlite3.connect('levels.sqlite')
+                        cur = con.cursor()
+                        name = cur.execute(f"""select file_name from levels where id = {int(now_lvl)}""").fetchone()[0]
+                        now_lvl += 1
+                        con.commit()
+                        con.close()
+                        loaded_obstacles, start_stop_obstacles = map_edit.load_level(car, name)
+                        for elem in moveable_obstacles:
+                            elem.kill()
+                        for elem in obstacles:
+                            elem.kill()
+                        moveable_obstacles.add(start_stop_obstacles)
+                        obstacles.add(loaded_obstacles)
+                        ticks = 0
             elif pressed[pygame.K_DELETE]:
                 if map_edit.object_moving_mode:
                     map_edit.object_moving_mode = False
@@ -130,25 +171,43 @@ class Game:
 
 
 
-            if not self.show_car_and_velocity:
+            if not self.show_car_and_velocity:# or not self.notification_mode:
                 map_edit.drag_copy(pos, moveable_obstacles)
                 obstacles.add(moveable_obstacles)
-            map_edit.drag(pos, moveable_obstacles)
-            moveable_obstacles.draw(self.screen)
-            obstacles.draw(self.screen)
+            if not self.notification_mode:
+                map_edit.drag(pos, moveable_obstacles)
+                moveable_obstacles.draw(self.screen)
+                obstacles.draw(self.screen)
             # print('game', len(moveable_obstacles), len(obstacles), len(map_edit.ex_obstacles))
 
             if self.show_car_and_velocity:
-                text = self.font.render('speed {}'.format(round(car.velocity, 2)), True, pygame.Color('red'))
-                self.screen.blit(text, (1285, 5))
-                text = self.font.render('health {}'.format(car.health), True, pygame.Color('red'))
-                self.screen.blit(text, (1285, 55))
-                self.screen.blit(car.image, (car.position_x - car.rect.w / 2, car.position_y - car.rect.h / 2))
+                if not self.notification_mode:
+                    text = self.font.render('speed {}'.format(round(car.velocity, 2)), True, pygame.Color('red'))
+                    self.screen.blit(text, (1285, 5))
+                    text = self.font.render('health {}'.format(car.health), True, pygame.Color('red'))
+                    self.screen.blit(text, (1285, 55))
+                    self.screen.blit(car.image, (car.position_x - car.rect.w / 2, car.position_y - car.rect.h / 2))
+                else:
+                    text = self.font.render(self.notification_message, True, pygame.Color('red'))
+                    self.screen.blit(text, (500, 300))
+                    text = self.small_font.render('чтобы продолжить нажмите Enter', True, pygame.Color('red'))
+                    self.screen.blit(text, (560, 360))
             else:
-                map_edit.ex_obstacles.draw(self.screen)
+                if not self.notification_mode:
+                    map_edit.ex_obstacles.draw(self.screen)
 
             #pygame.draw.rect(self.screen, pygame.Color('red'), car.rect, 3)
+            pygame.draw.rect(self.screen, pygame.Color('purple'), self.finish_point, 10)
 
             pygame.display.flip()
             self.clock.tick(self.ticks)
         pygame.quit()
+
+    def notification(self, message='вы успешно прошли уровень'):
+        if not self.notification_mode:
+            self.notification_mode = True
+            self.notification_message = message
+
+    def notification_off(self):
+        if self.notification_mode:
+            self.notification_mode = False
