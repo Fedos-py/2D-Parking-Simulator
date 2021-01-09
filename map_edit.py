@@ -6,6 +6,7 @@ import csv
 import os
 from tkinter.filedialog import askopenfilename
 from tkinter import *
+from map_edit import *
 
 class MapEdit:
     def __init__(self, area):
@@ -98,6 +99,8 @@ class MapEdit:
         obstacles = pygame.sprite.Group()
         #start_stop_obstacles = pygame.sprite.Group()
 
+        print(current_dir)
+
         with open(current_dir, "r") as File:
             reader = csv.reader(File)
             for row in reader:
@@ -106,8 +109,10 @@ class MapEdit:
                     print(row)
                     if row[4] == 'start_point':
                         #print(int(row[1]), int(row[2]))
-                        #car.position_x = int(row[1]) + 5
-                        #car.position_y = int(row[2]) + 35
+                        car.position_x = int(row[1]) + 5
+                        car.position_y = int(row[2]) + 35
+                        car.velocity = 0.0
+                        car.angle = 0
                         start_point = Obstacle(row[0], int(row[1]), int(row[2]), int(row[3]))
                         #start_stop_obstacles.add(Obstacle(row[0], int(row[1]), int(row[2]), int(row[3])))
                     elif row[4] == 'finish_point':

@@ -76,20 +76,19 @@ class Game:
         map_edit.edit_ex(('conus2.png', 1310, 50, 0), ('stone1.png', 1310, 150, 0), ('arrow.png', 1500, 50, 0))
         rot = False
 
-        loaded_obstacles, start_point, finish_point = map_edit.load_level(car, '3lvl.csv')
+        loaded_obstacles, start_point, finish_point = map_edit.load_level(car, '1lvl.csv')
         print(start_point.rect.x,start_point.rect.y)
         car.position_x = start_point.rect.x + 5
         car.position_y = start_point.rect.y + 35
 
-        for elem in moveable_obstacles:
-            elem.kill()
+        self.clear_groups(moveable_obstacles)
         moveable_obstacles.add(loaded_obstacles)
         start_finish_points.add(start_point, finish_point)
-        editable_objects.add(loaded_obstacles, start_point, finish_point)
+        editable_objects.add(loaded_obstacles, start_finish_points)
         #obstacles.add(start_stop_obstacles)
 
         obstacles.add(moveable_obstacles)
-        now_lvl = 1
+        now_lvl = 2
         ticks = 0
 
         while not self.exit:
@@ -109,7 +108,18 @@ class Game:
             pressed = pygame.key.get_pressed()
             # Проверим, не достигли ли мы финиша
             if not self.notification_mode and (pygame.sprite.collide_mask(car, finish_point)):
-                self.notification()
+                con = sqlite3.connect('levels.sqlite')
+                cur = con.cursor()
+                max_res = cur.execute(f"""select id from levels""").fetchall()[-1][0]
+                print('max', max_res)
+                con.commit()
+                con.close()
+                car.velocity = 0
+                if max_res >= now_lvl:
+                    self.notification()
+                else:
+                    self.notification('вы прошли все уровни. хотите пройти заново?')
+                    now_lvl = 1
             for elem in obstacles: #обработка столкновений машинки с препятствиями
                 self.col = pygame.sprite.collide_mask(car, elem)
                 if self.col:
@@ -160,14 +170,28 @@ class Game:
                         print('закончили уровень')
                         con = sqlite3.connect('levels.sqlite')
                         cur = con.cursor()
-                        name = cur.execute(f"""select file_name from levels where id = {int(now_lvl)}""").fetchone()[0]
+                        #max_res = cur.execute(f"""select id from levels""").fetchall()[-1][0]
+                        name = cur.execute(f"""select file_name from levels where id = {now_lvl}""").fetchone()[0]
                         now_lvl += 1
                         con.commit()
                         con.close()
-                        loaded_obstacles, start_point, finish_point = map_edit.load_level(car, name)
 
-                        self.clear_groups(moveable_obstacles, start_finish_points)
+                        loaded_obstacles, start_point, finish_point = map_edit.load_level(car, name)
+                        #print(start_point.rect.x, start_point.rect.y)
+
+                        car.position_x = start_point.rect.x + 5
+                        car.position_y = start_point.rect.y + 35
+                        for elem in editable_objects:
+                            elem.kill()
                         start_finish_points.add(start_point, finish_point)
+                        editable_objects.add(loaded_obstacles, start_point, finish_point)
+
+                        moveable_obstacles.add(loaded_obstacles)
+                        #                editable_objects = moveable_obstacles
+                        obstacles.add(loaded_obstacles)
+
+                        #self.clear_groups(moveable_obstacles, start_finish_points)
+                        #start_finish_points.add(start_point, finish_point)
                         #for elem in moveable_obstacles:
                          #   elem.kill()
                         #for elem in obstacles:
@@ -224,7 +248,7 @@ class Game:
                 else:
                     # если режим показа уведомления включён, то показываем уведомление.
                     text = self.font.render(self.notification_message, True, pygame.Color('red'))
-                    self.screen.blit(text, (500, 300))
+                    self.screen.blit(text, (100, 300))
                     text = self.small_font.render('чтобы продолжить нажмите Enter', True, pygame.Color('red'))
                     self.screen.blit(text, (560, 360))
             else:
@@ -240,7 +264,7 @@ class Game:
             self.clock.tick(self.ticks)
         pygame.quit()
 
-    def notification(self, message='вы успешно прошли уровень'):
+    def notification(self, message='вы успешно прошли уровень', ):
         if not self.notification_mode:
             self.notification_mode = True
             self.notification_message = message
