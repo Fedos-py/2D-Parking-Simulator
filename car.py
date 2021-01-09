@@ -75,7 +75,7 @@ class Car(pygame.sprite.Sprite):
                 self.acceleration = -self.brake_deceleration
             else:
                 self.acceleration -= 1 * dt
-        elif pressed[pygame.K_SPACE]:  # тормозим
+        elif pressed[pygame.K_LCTRL]:  # тормозим
             if abs(self.velocity) > dt * self.brake_deceleration:  # не можем затормозить за 1 кадр
                 self.acceleration = -copysign(self.brake_deceleration, self.velocity)
             else:  # можем затормозить за 1 кадр

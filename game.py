@@ -25,7 +25,12 @@ class Game:
         self.show_car_and_velocity = True
         self.notification_mode = False
         self.notification_message = 'тут ваше уведомление'
-        self.finish_point = pygame.Rect(695, 125, 12, 12)
+        #self.finish_point = pygame.Rect(695, 125, 12, 12)
+
+    def clear_groups(self, *groups):
+        for group in groups:
+            for obj in group:
+                obj.kill()
 
     def run(self):
         car = Car(550, 250)
@@ -50,25 +55,40 @@ class Game:
         margines.add(top_marg)
         bott_marg = Margine(horizontal, 0, TRAINING_AREA_H - SEGMENT)
         margines.add(bott_marg)
+
+        finish_point = Obstacle('finish_point.png', 80, 80, 0)
+        start_point = Obstacle('start_rect_2.png', 300, 100, 0)
+        start_finish_points = pygame.sprite.Group()
+
         obstacles = pygame.sprite.Group()
         moveable_obstacles = pygame.sprite.Group()
+        moveable_obstacles.add(finish_point)
         #moveable_obstacles.add(conus)
         #moveable_obstacles.add(conus2)
         #moveable_obstacles.add(start_zone, finish_zone)
         obstacles.add(margines)#, moveable_obstacles)
         background_obstacles = pygame.sprite.Group()
         #moveable_obstacles.add(margines)
+        editable_objects = pygame.sprite.Group()
 
 
         map_edit = MapEdit((50, 50, TRAINING_AREA_W - 50, TRAINING_AREA_H - 50))
         map_edit.edit_ex(('conus2.png', 1310, 50, 0), ('stone1.png', 1310, 150, 0), ('arrow.png', 1500, 50, 0))
         rot = False
 
-        loaded_obstacles, start_stop_obstacles = map_edit.load_level(car, '2lvl.csv')
+        loaded_obstacles, start_point, finish_point = map_edit.load_level(car, '3lvl.csv')
+        print(start_point.rect.x,start_point.rect.y)
+        car.position_x = start_point.rect.x + 5
+        car.position_y = start_point.rect.y + 35
+
         for elem in moveable_obstacles:
             elem.kill()
-        moveable_obstacles.add(start_stop_obstacles)
-        obstacles.add(loaded_obstacles)
+        moveable_obstacles.add(loaded_obstacles)
+        start_finish_points.add(start_point, finish_point)
+        editable_objects.add(loaded_obstacles, start_point, finish_point)
+        #obstacles.add(start_stop_obstacles)
+
+        obstacles.add(moveable_obstacles)
         now_lvl = 1
         ticks = 0
 
@@ -87,6 +107,9 @@ class Game:
 
             # User input
             pressed = pygame.key.get_pressed()
+            # Проверим, не достигли ли мы финиша
+            if not self.notification_mode and (pygame.sprite.collide_mask(car, finish_point)):
+                self.notification()
             for elem in obstacles: #обработка столкновений машинки с препятствиями
                 self.col = pygame.sprite.collide_mask(car, elem)
                 if self.col:
@@ -108,16 +131,25 @@ class Game:
             elif pressed[pygame.K_EQUALS]:
                 self.show_car_and_velocity = False
             elif pressed[pygame.K_s]:
-                map_edit.save_level(moveable_obstacles)
+                editable_objects.add(moveable_obstacles, start_finish_points)
+                map_edit.save_level(editable_objects)
             elif pressed[pygame.K_f]:
                 print(ticks)
                 if car.rect.colliderect(self.finish_point) == 1:
                     self.notification()
             elif pressed[pygame.K_l]:
-                loaded_obstacles, start_stop_obstacles = map_edit.load_level(car)
-                for elem in moveable_obstacles:
+                loaded_obstacles, start_point, finish_point = map_edit.load_level(car)
+                print(start_point.rect.x, start_point.rect.y)
+
+                car.position_x = start_point.rect.x + 5
+                car.position_y = start_point.rect.y + 35
+                for elem in editable_objects:
                     elem.kill()
-                moveable_obstacles.add(start_stop_obstacles)
+                start_finish_points.add(start_point, finish_point)
+                editable_objects.add(loaded_obstacles, start_point, finish_point)
+
+                moveable_obstacles.add(loaded_obstacles)
+#                editable_objects = moveable_obstacles
                 obstacles.add(loaded_obstacles)
             elif pressed[pygame.K_n]:
                 self.notification()
@@ -132,13 +164,16 @@ class Game:
                         now_lvl += 1
                         con.commit()
                         con.close()
-                        loaded_obstacles, start_stop_obstacles = map_edit.load_level(car, name)
-                        for elem in moveable_obstacles:
-                            elem.kill()
-                        for elem in obstacles:
-                            elem.kill()
-                        moveable_obstacles.add(start_stop_obstacles)
-                        obstacles.add(loaded_obstacles)
+                        loaded_obstacles, start_point, finish_point = map_edit.load_level(car, name)
+
+                        self.clear_groups(moveable_obstacles, start_finish_points)
+                        start_finish_points.add(start_point, finish_point)
+                        #for elem in moveable_obstacles:
+                         #   elem.kill()
+                        #for elem in obstacles:
+                        #    elem.kill()
+                        #moveable_obstacles.add(start_finish_points)
+                        #obstacles.add(loaded_obstacles)
                         ticks = 0
             elif pressed[pygame.K_DELETE]:
                 if map_edit.object_moving_mode:
@@ -167,37 +202,39 @@ class Game:
             # Перемещение объектов группы moveable_obstacles мышкой по площадке
             pos = ((pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]))
 
-
-
-
-
             if not self.show_car_and_velocity:# or not self.notification_mode:
                 map_edit.drag_copy(pos, moveable_obstacles)
                 obstacles.add(moveable_obstacles)
             if not self.notification_mode:
-                map_edit.drag(pos, moveable_obstacles)
+                map_edit.drag(pos, editable_objects)#moveable_obstacles
                 moveable_obstacles.draw(self.screen)
+                start_finish_points.draw(self.screen)
                 obstacles.draw(self.screen)
             # print('game', len(moveable_obstacles), len(obstacles), len(map_edit.ex_obstacles))
 
             if self.show_car_and_velocity:
+                # если режим добавления обьектов не включён:
                 if not self.notification_mode:
+                    # если режим показа уведомления не включён, то отображаем машинку, скорость и здоровье.
                     text = self.font.render('speed {}'.format(round(car.velocity, 2)), True, pygame.Color('red'))
                     self.screen.blit(text, (1285, 5))
                     text = self.font.render('health {}'.format(car.health), True, pygame.Color('red'))
                     self.screen.blit(text, (1285, 55))
                     self.screen.blit(car.image, (car.position_x - car.rect.w / 2, car.position_y - car.rect.h / 2))
                 else:
+                    # если режим показа уведомления включён, то показываем уведомление.
                     text = self.font.render(self.notification_message, True, pygame.Color('red'))
                     self.screen.blit(text, (500, 300))
                     text = self.small_font.render('чтобы продолжить нажмите Enter', True, pygame.Color('red'))
                     self.screen.blit(text, (560, 360))
             else:
+                # если режим добавления обьектов включён:
                 if not self.notification_mode:
+                    # если режим показа уведомления выключён, то отображаем палитру препятствий.
                     map_edit.ex_obstacles.draw(self.screen)
 
             #pygame.draw.rect(self.screen, pygame.Color('red'), car.rect, 3)
-            pygame.draw.rect(self.screen, pygame.Color('purple'), self.finish_point, 10)
+            #pygame.draw.rect(self.screen, pygame.Color('purple'), self.finish_point, 10)
 
             pygame.display.flip()
             self.clock.tick(self.ticks)

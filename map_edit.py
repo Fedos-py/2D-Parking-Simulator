@@ -75,12 +75,12 @@ class MapEdit:
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=';')
             for elem in info:
                 print(elem[0])
-                if elem[0] != 'start_rect_2.png' and elem[0] != 'finish_rect_2.png':
+                if elem[0] == 'finish_point.png':
+                    etype = 'finish_point'
+                elif elem[0] == 'start_rect_2.png' or elem[0] == 'start_rect.png':
+                    etype = 'start_point'
+                else:
                     etype = 'simple'
-                elif elem[0] == 'start_rect_2.png':
-                    etype = 'start'
-                elif elem[0] == 'finish_rect_2.png':
-                    etype = 'finish'
                 writer.writerow({'filename': elem[0], 'position_x': elem[1], 'position_y': elem[2], 'angle': elem[3], 'type': etype})
 
 
@@ -94,26 +94,28 @@ class MapEdit:
                                    filetypes=[('Game levels', '*.csv'), ('All files', '*.*')])
         else:
             current_dir = f'{os.path.dirname(os.path.abspath(__file__))}/Levels/{needed_lvl}'
-        #current_dir = os.path.dirname(os.path.abspath(__file__))
         print(current_dir)
         obstacles = pygame.sprite.Group()
-        start_stop_obstacles = pygame.sprite.Group()
-        #with open(f'{current_dir}/Levels/{filename}.csv', "r") as File:
+        #start_stop_obstacles = pygame.sprite.Group()
+
         with open(current_dir, "r") as File:
             reader = csv.reader(File)
             for row in reader:
                 if row != [] and row != ['', '', '', '', ''] and row != "['', '', '', '', '']":
                     row = row[0].split(';')
                     print(row)
-                    if row[4] == 'start':
-                        print(int(row[1]))
-                        car.position_x = int(row[1]) + 5
-                        print(int(row[2]))
-                        car.position_y = int(row[2]) + 35
-                        start_stop_obstacles.add(Obstacle(row[0], int(row[1]), int(row[2]), int(row[3])))
+                    if row[4] == 'start_point':
+                        #print(int(row[1]), int(row[2]))
+                        #car.position_x = int(row[1]) + 5
+                        #car.position_y = int(row[2]) + 35
+                        start_point = Obstacle(row[0], int(row[1]), int(row[2]), int(row[3]))
+                        #start_stop_obstacles.add(Obstacle(row[0], int(row[1]), int(row[2]), int(row[3])))
+                    elif row[4] == 'finish_point':
+                        finish_point = Obstacle(row[0], int(row[1]), int(row[2]), int(row[3]))
+
                     else:
                         obstacles.add(Obstacle(row[0], int(row[1]), int(row[2]), int(row[3])))
-        return obstacles, start_stop_obstacles
+        return obstacles, start_point, finish_point
 
     def add_ex(self):
         pass
@@ -124,9 +126,10 @@ class MapEdit:
             o=Obstacle(obj[0], obj[1], obj[2], obj[3])
             self.ex_obstacles.add(o)
 
-'''    def fileopen(self, **kwargs):
+        '''    def fileopen(self, **kwargs):
         root = Tk()
         root.withdraw()  # hide the window
         file = askopenfilename(**kwargs)
         root.destroy()
-        return file'''
+        return file
+        '''
