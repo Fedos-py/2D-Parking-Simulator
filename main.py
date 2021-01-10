@@ -11,6 +11,10 @@ if __name__ == '__main__':
     os.system('python menu.py')
     '''
     game = Game()
-    textbox()
+    app = QApplication(sys.argv)
+    ex = MyWidget(game)
+    ex.show()
+    sys.exit(app.exec_())
+    #textbox()
 
-    game.run()
+    #game.run()
