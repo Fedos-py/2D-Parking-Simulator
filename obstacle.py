@@ -10,14 +10,18 @@ class Obstacle(pygame.sprite.Sprite):
         self.name = name
         current_dir = os.path.dirname(os.path.abspath(__file__))
         image_path = os.path.join(current_dir + '/Images/Obstacles/', self.name)
-        self.initial_image = pygame.image.load(image_path)
-        self.image = self.initial_image
-        self.mask = pygame.mask.from_surface(self.image)
-        self.rect = self.image.get_rect()
-        self.angle = 0
-        self.rotate(angle)
-        self.rect.x = x
-        self.rect.y = y
+        try:
+            self.initial_image = pygame.image.load(image_path)
+            self.image = self.initial_image
+            self.mask = pygame.mask.from_surface(self.image)
+            self.rect = self.image.get_rect()
+            self.angle = 0
+            self.rotate(angle)
+            self.rect.x = x
+            self.rect.y = y
+        except FileNotFoundError:
+            pass
+            #print('FileNotFoundError')
 
     def rotate(self, angle):
         self.angle += angle

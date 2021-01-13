@@ -1,8 +1,12 @@
 from file_operations import *
+from globals import *
 from math import sin, radians, degrees, copysign, cos
 from pygame.math import Vector2
 import pygame
 import os
+import sqlite3
+from PyQt5 import uic  # Импортируем uic
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLineEdit, QDialog, QTableWidget, QWidget
 
 
 TRAINING_AREA_W = 1280
@@ -10,7 +14,7 @@ TRAINING_AREA_H = 720
 MAX_ACCELERATION = 9.0
 
 class Car(pygame.sprite.Sprite):
-    def __init__(self, x, y, angle=0.0, length=4, max_steering=30, max_acceleration=50.0, *group):
+    def __init__(self, x, y, angle=0.0, length=2, max_steering=30, max_acceleration=50.0, *group):
         super().__init__(*group)
         self.position_x = x
         self.position_y = y
@@ -25,18 +29,22 @@ class Car(pygame.sprite.Sprite):
         self.health = 100
         self.start_point = (0, 0)
         self.finish_point = (0, 0)
+        self.exception = list()
 
         self.acceleration = 0.0
         self.steering = 0.0
+        image_path = os.path.join(f"{IMG_CARS_DIR}\car.png")
+        try:
+            self.initial_car_image = pygame.image.load(image_path)
+            self.image = self.initial_car_image
+            self.rect = self.image.get_rect()
+            print(self.rect)
+            self.longer()
+            self.mask = pygame.mask.from_surface(self.image)
+        except FileNotFoundError:
+            self.exception.append('FileNotFoundError')
+            self.exception.append(f'FileNotFoundError - файл car.png не найден в директории {IMG_CARS_DIR}.')
 
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        image_path = os.path.join(current_dir + '/Images/Cars/', "car.png")
-        self.initial_car_image = pygame.image.load(image_path)
-        self.image = self.initial_car_image
-        self.rect = self.image.get_rect()
-        print(self.rect)
-        self.longer()
-        self.mask = pygame.mask.from_surface(self.image)
 
 
     def update(self, dt):
@@ -97,16 +105,58 @@ class Car(pygame.sprite.Sprite):
 
 
     def change_car(self):
-        current_dir = fileopen(title="Please select a file", initialdir=f'{os.path.dirname(os.path.abspath(__file__))}/Images/Cars',
-                               filetypes=[('Game levels', '*.png'), ('All files', '*.*')])
-        image_path = os.path.join(current_dir)
-        self.initial_car_image = pygame.image.load(image_path)
-        self.image = self.initial_car_image
-        self.rect = self.image.get_rect()
-        self.mask = pygame.mask.from_surface(self.image)
+        #self.chose = Chosing_car()
+        #self.chose.show()
+        car_image_file = fileopen(title="Please select a file",
+                                  initialdir=IMG_CARS_DIR,
+                                  filetypes=[('Game levels', '*.png'), ('All files', '*.*')])
+        if car_image_file:
+            self.initial_car_image = pygame.image.load(car_image_file)
+            self.image = self.initial_car_image
+            self.rect = self.image.get_rect()
+            if self.rect.w > 180:
+                self.length = 6
+            elif self.rect.w < 130:
+                self.length = 2
+            else:
+                self.length = 3
+            self.mask = pygame.mask.from_surface(self.image)
+
 
     def longer(self, k=2):
         surf = pygame.Surface((self.rect.w * k, self.rect.h))
         surf.blit(self.image, (self.rect.w * (k - 1), 0))
         surf.set_colorkey(pygame.Color('Black'))
         self.initial_car_image = surf
+
+'''
+class Chosing_car(QWidget):
+    def __init__(self ):
+        super().__init__()
+        uic.loadUi('chose_car.ui', self)
+        self.tableWidget.setColumnCount(6)
+        self.tableWidget.setRowCount(4)
+        self.tableWidget.setHorizontalHeaderLabels(['ид', 'Название машины', 'Макс. скорость', 'Ускорение', 'Поворотливость', '.png файл'])
+        con = sqlite3.connect(f'{os.path.dirname(os.path.abspath(__file__))}\Databases\cars.sqlite')
+        cur = con.cursor()
+        values = cur.execute("""SELECT * FROM avtopark""").fetchall()
+        con.commit()
+        con.close()
+        print(values)
+        self.tableWidget.resizeColumnsToContents()
+        self.pushButton.clicked.connect(self.chose_from_table)
+        self.pushButton_2.clicked.connect(self.upload)
+
+
+    def chose_from_table(self):
+        pass
+
+    def upload(self):
+        car_image_file = fileopen(title="Please select a file",
+                                  initialdir=f'{os.path.dirname(os.path.abspath(__file__))}/Images/Cars',
+                                  filetypes=[('Game levels', '*.png'), ('All files', '*.*')])
+        if car_image_file:
+            self.initial_car_image = pygame.image.load(car_image_file)
+            self.image = self.initial_car_image
+            self.rect = self.image.get_rect()
+            self.mask = pygame.mask.from_surface(self.image)'''

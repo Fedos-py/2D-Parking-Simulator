@@ -48,8 +48,11 @@ class MapEdit:
                 self.object_moving_mode = False
 
     def drag(self, pos, objects_group):
-        self.take(pos, objects_group)
-        self.put(pos)
+        try:
+            self.take(pos, objects_group)
+            self.put(pos)
+        except AttributeError:
+            print('AttributeError')
 
     def drag_copy(self, pos, to_group):
         obj = self.take(pos, self.ex_obstacles)
@@ -66,23 +69,23 @@ class MapEdit:
         for elem in obstacles:
             info.append([elem.name, elem.rect.x, elem.rect.y, elem.angle])
         print(info)
-        current_dir = filesave(title="Please select a file", initialdir=f'{os.path.dirname(os.path.abspath(__file__))}/Levels' ,
+        current_dir = filesave(title="Please select a file", initialdir=LEVELS_DIR,
                                   filetypes=[('Game levels', '*.csv'), ('All files', '*.*')])
-        #filename = input("введите название файла для записи ")
-        #print(f'записываем в файл {filename} значения {info}')
-        #current_dir = os.path.dirname(os.path.abspath(__file__))
-        with open(current_dir, 'w') as csvfile:
-            fieldnames = ['filename', 'position_x', 'position_y', 'angle', 'type']
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=';')
-            for elem in info:
-                print(elem[0])
-                if elem[0] == 'finish_point.png':
-                    etype = 'finish_point'
-                elif elem[0] == 'start_rect_2.png' or elem[0] == 'start_rect.png':
-                    etype = 'start_point'
-                else:
-                    etype = 'simple'
-                writer.writerow({'filename': elem[0], 'position_x': elem[1], 'position_y': elem[2], 'angle': elem[3], 'type': etype})
+        if current_dir:
+            with open(current_dir, 'w') as csvfile:
+                fieldnames = ['filename', 'position_x', 'position_y', 'angle', 'type']
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=';')
+                for elem in info:
+                    print(elem[0])
+                    if elem[0] == 'finish_point.png':
+                        etype = 'finish_point'
+                    elif elem[0] == 'start_rect_2.png' or elem[0] == 'start_rect.png':
+                        etype = 'start_point'
+                    else:
+                        etype = 'simple'
+                    writer.writerow(
+                        {'filename': elem[0], 'position_x': elem[1], 'position_y': elem[2], 'angle': elem[3],
+                         'type': etype})
 
 
 
@@ -90,37 +93,40 @@ class MapEdit:
         print('загружаем уровень')
         #filename = input('введите название файла с загружаемым уровнем ')
         if needed_lvl == None:
-            current_dir = fileopen(title="Please select a file",
-                                   initialdir=f'{os.path.dirname(os.path.abspath(__file__))}/Levels',
+            level_file = fileopen(title="Please select a file",
+                                   initialdir=LEVELS_DIR,
                                    filetypes=[('Game levels', '*.csv'), ('All files', '*.*')])
+            print('ничего не выбрали')
         else:
-            current_dir = f'{os.path.dirname(os.path.abspath(__file__))}/Levels/{needed_lvl}'
-        print(current_dir)
-        obstacles = pygame.sprite.Group()
-        #start_stop_obstacles = pygame.sprite.Group()
+            level_file = f'{LEVELS_DIR}/{needed_lvl}'
+        print(level_file)
+        if level_file:
+            obstacles = pygame.sprite.Group()
+            # start_stop_obstacles = pygame.sprite.Group()
 
-        print(current_dir)
+            print(level_file)
 
-        with open(current_dir, "r") as File:
-            reader = csv.reader(File)
-            for row in reader:
-                if row != [] and row != ['', '', '', '', ''] and row != "['', '', '', '', '']":
-                    row = row[0].split(';')
-                    print(row)
-                    if row[4] == 'start_point':
-                        #print(int(row[1]), int(row[2]))
-                        car.position_x = int(row[1]) + 5
-                        car.position_y = int(row[2]) + 35
-                        car.velocity = 0.0
-                        car.angle = 0
-                        start_point = Obstacle(row[0], int(row[1]), int(row[2]), int(row[3]))
-                        #start_stop_obstacles.add(Obstacle(row[0], int(row[1]), int(row[2]), int(row[3])))
-                    elif row[4] == 'finish_point':
-                        finish_point = Obstacle(row[0], int(row[1]), int(row[2]), int(row[3]))
+            with open(level_file, "r") as File:
+                reader = csv.reader(File)
+                for row in reader:
+                    if row != [] and row != ['', '', '', '', ''] and row != "['', '', '', '', '']":
+                        row = row[0].split(';')
+                        print(row)
+                        if row[4] == 'start_point':
+                            # print(int(row[1]), int(row[2]))
+                            car.position_x = int(row[1]) + 5
+                            car.position_y = int(row[2]) + 35
+                            car.velocity = 0.0
+                            car.angle = 0
+                            start_point = Obstacle(row[0], int(row[1]), int(row[2]), int(row[3]))
+                            # start_stop_obstacles.add(Obstacle(row[0], int(row[1]), int(row[2]), int(row[3])))
+                        elif row[4] == 'finish_point':
+                            finish_point = Obstacle(row[0], int(row[1]), int(row[2]), int(row[3]))
 
-                    else:
-                        obstacles.add(Obstacle(row[0], int(row[1]), int(row[2]), int(row[3])))
-        return obstacles, start_point, finish_point
+                        else:
+                            obstacles.add(Obstacle(row[0], int(row[1]), int(row[2]), int(row[3])))
+            return obstacles, start_point, finish_point
+        return None, None, None
 
     def add_ex(self):
         pass
